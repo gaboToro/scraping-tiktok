@@ -1,0 +1,9 @@
+# Entornos virtuales de Python
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Archivos de sesión y cookies (Seguridad)
+*.json
+!package.json
