@@ -6,21 +6,17 @@ from bs4 import BeautifulSoup
 COOKIE_PATH = "tiktok_cookies.json"
 
 async def get_recent_posts(username: str, limit: int = 5) -> list:
-    """
-    Extrae las métricas (likes, comentarios, compartidos) de las últimas publicaciones
-    de un perfil de TikTok, navegando a cada enlace individualmente de forma orgánica.
-    """
     clean_username = username if username.startswith("@") else f"@{username}"
     target_url = f"https://www.tiktok.com/{clean_username}"
 
     if not os.path.exists(COOKIE_PATH):
-        raise FileNotFoundError(f"Archivo de sesión '{COOKIE_PATH}' no encontrado. Ejecute session_manager.py primero.")
+        raise FileNotFoundError(f"Archivo de sesión '{COOKIE_PATH}' no encontrado.")
 
     print(f"Extrayendo métricas de los últimos {limit} videos de {clean_username}...")
     posts_data = []
 
     async with async_playwright() as p:
-        # Ejecución silenciosa en segundo plano
+        # Modo silencioso
         browser = await p.chromium.launch(headless=False)
         context = await browser.new_context(
             storage_state=COOKIE_PATH,
@@ -28,19 +24,16 @@ async def get_recent_posts(username: str, limit: int = 5) -> list:
         )
         page = await context.new_page()
 
-        # --- PARTE 1: CARGAR EL PERFIL ---
         await page.goto(target_url, wait_until="domcontentloaded")
         
         try:
-            # Espera a que cargue la cuadrícula de videos
-            await page.wait_for_selector('div[data-e2e="user-post-item"]', timeout=15000)
+            await page.wait_for_selector('div[data-e2e="user-post-item"]', timeout=60000)
             await page.wait_for_timeout(2000) 
         except Exception:
-            print(f"[ALERTA] No se encontró la cuadrícula de videos para {clean_username}.")
+            print(f"[ALERTA] No se encontró la cuadrícula de videos para {clean_username}. Error: {e}")
             await browser.close()
             return posts_data
 
-        # Validar la cantidad real de videos disponibles
         video_count = await page.locator('div[data-e2e="user-post-item"]').count()
         actual_limit = min(limit, video_count)
 
@@ -49,37 +42,39 @@ async def get_recent_posts(username: str, limit: int = 5) -> list:
             await browser.close()
             return posts_data
 
-        # --- PARTE 2: EXTRACCIÓN INDIVIDUAL POR VIDEO ---
         for i in range(actual_limit):
             try:
-                # Navegación orgánica mediante clic en la miniatura
+                # 1. Clic orgánico en la miniatura
                 await page.locator('div[data-e2e="user-post-item"] a').nth(i).click()
 
-                # Esperar a que el DOM del video cargue las métricas
-                await page.wait_for_selector('strong.video-count', timeout=10000)
-                await page.wait_for_timeout(1000)
+                # 2. Esperamos el nombre correcto del modal: browse-like-count
+                await page.wait_for_selector('strong[data-e2e="browse-like-count"]', timeout=15000)
+                await page.wait_for_timeout(1000) # Pausa humana
                 
                 current_url = page.url
                 post_html = await page.content()
                 post_soup = BeautifulSoup(post_html, "html.parser")
 
-                metrics = post_soup.find_all("strong", class_="video-count")
+                # 3. Buscamos los datos con el prefijo "browse-"
+                like_btn = post_soup.find("strong", {"data-e2e": "browse-like-count"})
+                comment_btn = post_soup.find("strong", {"data-e2e": "browse-comment-count"})
+                fav_btn = post_soup.find("strong", {"data-e2e": "browse-favorite-count"})
                 
-                likes_val = metrics[0].text.strip() if len(metrics) > 0 else "0"
-                comments_val = metrics[1].text.strip() if len(metrics) > 1 else "0"
-                shares_val = metrics[2].text.strip() if len(metrics) > 2 else "0"
+                likes_val = like_btn.text.strip() if like_btn else "0"
+                comments_val = comment_btn.text.strip() if comment_btn else "0"
+                favs_val = fav_btn.text.strip() if fav_btn else "0"
                 
                 posts_data.append({
                     "url": current_url,
                     "likes": likes_val,
                     "comments": comments_val,
-                    "shares": shares_val
+                    "favorites": favs_val # Reemplazamos "shares" por "favorites"
                 })
                 
             except Exception as e:
-                print(f"  -> Error en la extracción del video {i+1}: Tiempo de espera agotado.")
+                print(f"  -> Error en la extracción del video {i+1}. Saltando...")
 
-            # Retornar al perfil principal para limpiar el contexto visual
+            # Retornar al perfil principal
             await page.goto(target_url, wait_until="domcontentloaded")
             await page.wait_for_selector('div[data-e2e="user-post-item"]', timeout=15000)
             await page.wait_for_timeout(1500)
