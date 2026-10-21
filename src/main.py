@@ -3,13 +3,13 @@ import json
 import asyncio
 
 # Importamos las funciones y variables de nuestros módulos
-from session_manager import generate_session, COOKIE_PATH
-from profile_scraper import get_profile_info
-from post_scraper import get_recent_posts
+from src.session_manager import generate_session, COOKIE_PATH
+from src.profile_scraper import get_profile_info
+from src.post_scraper import get_recent_posts
 
 async def run_pipeline():
     print("=" * 50)
-    print("      🚀 TIKTOK SCRAPER 🚀")
+    print("      🚀 TIKTOK SCRAPER PRO (SIN EXTENSIONES) 🚀")
     print("=" * 50)
     
     username = input("\nIngresa el username de TikTok a consultar (ej. @tiktok): ").strip()
@@ -17,16 +17,15 @@ async def run_pipeline():
         print("[ERROR] El usuario no puede estar vacío.")
         return
 
-    # --- LÓGICA INTELIGENTE DE COOKIES ---
+    # LÓGICA DE COOKIES
     if not os.path.exists(COOKIE_PATH):
         print("\n[PREPARACIÓN] No se encontraron cookies guardadas.")
         print("Generando una nueva sesión (se abrirá el navegador)...")
         await generate_session()
     else:
         print(f"\n[PREPARACIÓN] Sesión encontrada ({COOKIE_PATH}). Reutilizando cookies...")
-        print("  -> Tip: Si el script falla, borra este archivo para forzar la renovación de cookies.")
 
-    # --- EXTRACCIÓN DEL PERFIL ---
+    # EXTRACCIÓN DEL PERFIL
     print(f"\n[1/2] Extrayendo datos generales del perfil {username}...")
     try:
         profile_data = await get_profile_info(username)
@@ -34,19 +33,19 @@ async def run_pipeline():
         print(f"[ERROR] Falló la extracción del perfil: {e}")
         return
 
-    # --- EXTRACCIÓN DE LOS VIDEOS ---
+    # EXTRACCIÓN DE LOS VIDEOS
     print("\n[2/2] Extrayendo métricas de las últimas publicaciones...")
     try:
-        # Extraemos 5 videos de forma secuencial y humana
         posts = await get_recent_posts(username, limit=5)
         profile_data["recent_posts"] = posts
     except Exception as e:
         print(f"[ERROR] Falló la extracción de publicaciones: {e}")
         profile_data["recent_posts"] = []
 
-    # --- EXPORTACIÓN A JSON ---
+    # EXPORTACIÓN A JSON
+    os.makedirs("reports", exist_ok=True) # Crea la carpeta si no existe por algún motivo
     clean_name = username.replace('@', '')
-    output_filename = f"report_{clean_name}.json"
+    output_filename = f"reports/report_{clean_name}.json" # Redirige a la carpeta reports
     
     with open(output_filename, "w", encoding="utf-8") as f:
         json.dump(profile_data, f, indent=4, ensure_ascii=False)

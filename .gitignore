@@ -7,3 +7,6 @@ __pycache__/
 # Archivos de sesión y cookies (Seguridad)
 *.json
 !package.json
+
+# Reportes
+reports/
