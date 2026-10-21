@@ -33,7 +33,7 @@ class TikTokScraperGUI:
             return
 
         # Bloquear botón y limpiar pantalla
-        self.btn_run.config(state=tk.DISABLED, text="⏳ Extrayendo... (Revisa tu consola técnica)")
+        self.btn_run.config(state=tk.DISABLED, text="⏳ Extrayendo...")
         self.result_box.delete(1.0, tk.END)
         self.insert_text(f"Iniciando proceso para {username}...\n(El navegador invisible se está ejecutando de fondo)\n\n")
 

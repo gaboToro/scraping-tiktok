@@ -29,7 +29,6 @@ async def get_recent_posts(username: str, limit: int = 5) -> list:
             await page.wait_for_selector('div[data-e2e="user-post-item"]', timeout=60000)
             await page.wait_for_timeout(2000) 
         except Exception as e:
-            # CORRECCIÓN: variable 'e' declarada correctamente
             print(f"[ALERTA] No se encontró la cuadrícula de videos. Error: {e}")
             await browser.close()
             return posts_data

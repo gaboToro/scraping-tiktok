@@ -12,19 +12,17 @@ Un scraper avanzado y con interfaz gráfica para extraer datos de perfiles y pub
 * **Exportación JSON:** Guarda todos los datos estructurados automáticamente en la carpeta `reports/`.
 
 ## 📂 Estructura del Proyecto
-
-```text
-scraping-tiktok/
-├── reports/                # Informes JSON generados por el scraper
-├── src/                    # Código fuente del proyecto
-│   ├── __init__.py         
-│   ├── main.py             # Orquestador del pipeline de extracción
-│   ├── post_scraper.py     # Lógica de extracción de videos individuales
-│   ├── profile_scraper.py  # Lógica de extracción del perfil principal
-│   └── session_manager.py  # Generador de cookies para evasión de bots
-├── gui.py                  # Interfaz gráfica principal (Punto de entrada)
-├── requirements.txt        # Dependencias del proyecto
-└── README.md               # Documentación
+    scraping-tiktok/
+    ├── reports/                # Informes JSON generados por el scraper
+    ├── src/                    # Código fuente del proyecto
+    │   ├── __init__.py         
+    │   ├── main.py             # Orquestador del pipeline de extracción
+    │   ├── post_scraper.py     # Lógica de extracción de videos individuales
+    │   ├── profile_scraper.py  # Lógica de extracción del perfil principal
+    │   └── session_manager.py  # Generador de cookies para evasión de bots
+    ├── gui.py                  # Interfaz gráfica principal (Punto de entrada)
+    ├── requirements.txt        # Dependencias del proyecto
+    └── README.md               # Documentación
 
 ## Requisitos e Instalación
 
@@ -32,7 +30,7 @@ Asegúrate de tener **Python 3.8+** instalado.
 
 1. **Clona el repositorio:**
    ```bash
-   git clone [https://github.com/TU_USUARIO/scraping-tiktok.git](https://github.com/TU_USUARIO/scraping-tiktok.git)
+   git clone [https://github.com/gabo_toro/scraping-tiktok.git](https://github.com/gabo_toro/scraping-tiktok.git)
    cd scraping-tiktok
 
 2. **Crea y activa un entorno virtual (Recomendado):**
